@@ -8,7 +8,7 @@ export function Header() {
   const { handleChangeTheme, theme } = useTheme()
 
   return (
-    <header className="px-6 py-5 flex items-center justify-between border-b">
+    <header className="px-6 py-5 flex items-center justify-between border-b flex-col md:flex-row">
       <h1 className="font-bold text-xl">Upload.ai</h1>
 
       <div className="flex items-center justify-center gap-3">

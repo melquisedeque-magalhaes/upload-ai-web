@@ -3,7 +3,7 @@ import { useEffect } from 'react'
 import { useTheme } from './hooks/useTheme'
 import { Header } from './components/Header'
 import { Textarea } from './components/ui/textarea'
-import { FileVideo, Upload, Wand2 } from 'lucide-react'
+import { Wand2 } from 'lucide-react'
 import { Separator } from './components/ui/separator'
 import { Label } from './components/ui/label'
 import { Button } from './components/ui/button'
@@ -15,9 +15,33 @@ import {
   SelectValue,
 } from './components/ui/select'
 import { Slider } from './components/ui/slider'
+import { VideoForm } from './components/VideoForm'
+import { PromptSelect } from './components/PromptSelect'
+import { useResultStore } from './store/useResultStore'
+import { useCompletion } from 'ai/react'
 
 export function App() {
   const { handleChangeTheme } = useTheme()
+
+  const { setTemperature, temperature, videoId } = useResultStore()
+
+  const {
+    input,
+    setInput,
+    handleInputChange,
+    handleSubmit,
+    completion,
+    isLoading,
+  } = useCompletion({
+    api: 'http://localhost:3333/ai/complete',
+    body: {
+      temperature,
+      videoId,
+    },
+    headers: {
+      'Content-type': 'application/json',
+    },
+  })
 
   useEffect(() => {
     handleChangeTheme()
@@ -28,14 +52,17 @@ export function App() {
     <div className="flex flex-col min-h-screen">
       <Header />
 
-      <main className="flex-1 p-6 flex gap-6">
+      <main className="flex-1 p-6 flex gap-6 flex-col  md:flex-row">
         <div className="flex flex-1 flex-col gap-4">
           <div className="grid grid-rows-2 gap-4 flex-1">
             <Textarea
+              value={input}
+              onChange={handleInputChange}
               className="resize-none p-4 leading-relaxed"
               placeholder="Inclua o prompt para IA..."
             />
             <Textarea
+              value={completion}
               className="resize-none p-4 leading-relaxed"
               placeholder="Resultado gerado pela IA..."
               readOnly
@@ -49,52 +76,12 @@ export function App() {
         </div>
 
         <aside className="w-80 space-y-6">
-          <form className="space-y-6">
-            <label
-              htmlFor="video"
-              className="border flex rounded-md aspect-video cursor-pointer border-dashed text-sm flex-col gap-2 items-center justify-center text-muted-foreground hover:bg-primary/5 transition-colors"
-            >
-              <FileVideo className="w-4 h-4" />
-              Selecionar video
-            </label>
-            <input
-              type="file"
-              id="video"
-              accept="video/mp4"
-              className="sr-only"
-            />
+          <VideoForm />
 
-            <Separator />
-
-            <div className="space-y-2">
-              <Label htmlFor="transcription_prompt">Promp de transcricao</Label>
-              <Textarea
-                id="transcription_prompt"
-                className="h-20 leading-relaxed p-4 resize-none"
-                placeholder="Inclua palavras chaves mencionada no video, separadas por virgula (,)"
-              />
-            </div>
-
-            <Button className="w-full" type="submit">
-              Carregar video
-              <Upload className="w-4 h-4 ml-2" />
-            </Button>
-          </form>
-
-          <form className="space-y-6">
+          <form onSubmit={handleSubmit} className="space-y-6">
             <div className="space-y-4">
               <Label>Prompt</Label>
-              <Select>
-                <SelectTrigger>
-                  <SelectValue placeholder="Selecione um prompt..." />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="title">Titulo do Youtube</SelectItem>
-                  <SelectItem value="description">
-                    Descricao do Youtube
-                  </SelectItem>
-                </SelectContent>
-              </Select>
+              <PromptSelect setInput={setInput} />
             </div>
 
             <div className="space-y-4">
@@ -116,14 +103,21 @@ export function App() {
 
             <div className="space-y-4">
               <Label>Temperatura</Label>
-              <Slider min={0} max={1} step={0.1} defaultValue={[0.5]} />
+              <Slider
+                min={0}
+                max={1}
+                step={0.1}
+                value={[temperature]}
+                onValueChange={(value) => setTemperature(value[0])}
+              />
+
               <span className="block text-xs text-muted-foreground italic leading-relaxed">
                 Valores mais altos tendem a deixar o resultado mais criativo mas
                 tambem com possiveis erros
               </span>
             </div>
 
-            <Button type="submit" className="w-full">
+            <Button disabled={isLoading} type="submit" className="w-full">
               Executar
               <Wand2 className="w-4 h-4 ml-2" />
             </Button>
