@@ -77,6 +77,14 @@ $ yarn
 ```
 $ npm run dev
 ```
+ou
+```
+$ pnpm run dev
+```
+ou
+```
+$ yarn dev
+```
 
 <h2 id="license">📝 Licença</h2>
 
